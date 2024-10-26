@@ -3,7 +3,7 @@ import { env } from "../env.js";
 import { CastSender } from "../schemas.js";
 
 const redisConfig = {
-  url: `rediss://${env.REDIS_USERNAME}:${env.REDIS_PASSWORD}@${env.REDIS_HOST}:${env.REDIS_PORT}`,
+  url: `redis://${env.REDIS_USERNAME}:${env.REDIS_PASSWORD}@${env.REDIS_HOST}:${env.REDIS_PORT}`,
 };
 
 const redisClient = await createClient(redisConfig)
