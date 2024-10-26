@@ -26,7 +26,8 @@ const replyWithSuccess = async (
 ) => {
   addToRepliesQueue({
     text:
-      text || `Thanks @${nominator}, you just asked to do this: @${nominee}.`,
+      text ||
+      `Thanks @${nominator}, you just asked to do this: @${nominee} frame.`,
     id: `replyTo-${replyTo}-${Date.now()}`,
     replyTo,
   });

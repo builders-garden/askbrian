@@ -53,10 +53,10 @@ export const neynarSignatureMiddleware = (
 
   if (signature !== generatedSignature) {
     logger.error("Invalid Neynar Signature");
-    res.status(401).send("Unauthorized - invalid Neynar Signature");
-    return;
+    // res.status(401).send("Unauthorized - invalid Neynar Signature");
+    // return;
+  } else {
+    logger.log("Neynar Signature is valid");
   }
-
-  logger.log("Neynar Signature is valid");
   next();
 };
