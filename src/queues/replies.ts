@@ -15,12 +15,13 @@ const logger = new Logger("replies-worker");
  */
 export const processReply = async (job: { data: ReplyBody }) => {
   // @ts-ignore
-  const { text, replyTo }: ReplyBody = job.data;
+  const { text, replyTo, embeds }: ReplyBody = job.data;
 
   logger.log(`new reply received. iterating.`);
   logger.log(`reply text: ${text}`);
 
   const hash = await publishCast(text, {
+    embeds,
     replyTo,
   });
   logger.log(`reply ${hash} published successfully .`);
