@@ -3,10 +3,10 @@ import { env } from "../env.js";
 import { CastSender } from "../schemas.js";
 
 const redisConfig = {
-  url: `redis://${env.REDIS_USERNAME}:${env.REDIS_PASSWORD}@${env.REDIS_HOST}:${env.REDIS_PORT}`,
+  url: `rediss://${env.REDIS_USERNAME}:${env.REDIS_PASSWORD}@${env.REDIS_HOST}:${env.REDIS_PORT}`,
 };
 
-const redisClient = await createClient(redisConfig)
+export const redisClient = await createClient(redisConfig)
   .on("error", (err) => console.log("Redis Client Error", err))
   .connect();
 
@@ -19,14 +19,14 @@ export type Subscriber = {
 
 export const addSubscriber = async (
   channel: string,
-  subscriverId: string | number,
+  subscriberId: string | number,
   sender: string,
   subscriber: Subscriber
 ) => {
   subscriber.createdAt = Date.now();
   subscriber.sender = sender as CastSender;
   await redisClient.set(
-    `${channel}-${sender}-${subscriverId}`,
+    `${channel}-${sender}-${subscriberId}`,
     JSON.stringify(subscriber)
   );
   return subscriber;
