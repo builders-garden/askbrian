@@ -24,10 +24,15 @@ export const simpleCastSchema = z.object({
 
 export type SimpleCastBody = z.infer<typeof simpleCastSchema>;
 
+const embeddedCastSchema = z.object({
+  url: z.string().url(),
+});
+
 export const replySchema = z.object({
   text: z.string().min(1),
   id: z.string().min(1),
   replyTo: z.string().min(1),
+  embeds: z.array(embeddedCastSchema).default([]),
 });
 
 export type ReplyBody = z.infer<typeof replySchema>;
