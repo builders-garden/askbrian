@@ -1,74 +1,74 @@
 import { Request, Response } from "express";
 import { HTTPError } from "ky";
-import { getCastFromHash } from "../../utils/farcaster.js";
-import { addToRepliesQueue } from "../../queues/index.js";
-import { env } from "../../env.js";
 import { Logger } from "../../utils/logger.js";
+import { BrianSDK } from "@brian-ai/sdk";
+import { addToRepliesQueue } from "../../queues/index.js";
+import { redisClient } from "../../utils/redis.js";
+import { v4 as uuidv4 } from "uuid";
+import { TransactionsDataType } from "../../utils/types.js";
+import { generateFrameDataPayload } from "../../utils/brian.js";
+
+const options = {
+  apiKey: process.env.BRIAN_API_KEY!,
+};
+
+const brian = new BrianSDK(options);
 
 const logger = new Logger("nominationsHandler");
 
-const regexPattern =
-  /(?:@brianbot\s+\s+@\S+|@brianbot\s+|\s+@\S+\s+@brianbot|\s+@brianbot(?:\s+@\S+)?|@\S+\s+\s+@brianbot)\b/g;
+const regexPattern = /^@brianbot/g;
+
+const instructions = `This frame contains all your requested transactions.\n
+Click on the button to execute the first transaction, wait around 30 seconds for it to go through and then click on the "refresh" button, the second one.\n
+Keep going like this until you have executed all the transactions.\n`;
 
 const replyWithError = async (replyTo: string, text?: string) => {
   addToRepliesQueue({
-    text: text || "There was an issue with your nomination. Please try again.",
+    text: text || "There was an issue with your prompt. Please try again.",
     id: `replyTo-${replyTo}-${Date.now()}`,
     replyTo,
+    embeds: [],
   });
 };
 
 const replyWithSuccess = async (
   replyTo: string,
-  nominator: string,
-  nominee: string,
-  text?: string
+  text: string,
+  embeds: { url: string }[]
 ) => {
   addToRepliesQueue({
-    text:
-      text ||
-      `Thanks @${nominator}, you just asked to do this: @${nominee} frame.`,
+    text,
     id: `replyTo-${replyTo}-${Date.now()}`,
     replyTo,
+    embeds,
   });
 };
 
 export const nominationsHandler = async (req: Request, res: Response) => {
   try {
-    const { body } = req;
-
     logger.log(`new cast with @brianbot mention received.`);
-
-    const { data } = body;
+    const { data } = req.body;
 
     if (!data) {
       logger.error(`no data received.`);
       return res.status(200).send({ status: "nok" });
     }
 
-    const {
-      parent_hash: parentHash,
-      author,
-      text,
-      mentioned_profiles: mentionedProfiles,
-      hash,
-    } = data;
+    const { text, author, hash }: { text: string; author: any; hash: string } =
+      data;
 
-    const patternMatches: string[] = text.match(regexPattern);
+    console.log("hash: ", hash);
 
-    if (patternMatches === null) {
-      logger.error(`no nomination pattern found. received text - ${text}`);
+    if (text.match(regexPattern) === null) {
+      logger.error(`No brianbot command received. received text - ${text}`);
       return res.status(200).send({ status: "nok" });
     }
 
-    const firstMatch = patternMatches[0];
+    const prompt = text.replace("@brianbot", "").trim();
 
-    logger.log(`valid nomination pattern found - received text - ${text}`);
-    logger.log(`working on first match => ${firstMatch}`);
-    logger.log(
-      `cast hash - ${hash} - parent hash - ${parentHash} - author - ${author.username}`
-    );
+    console.log("The prompt is: ", prompt);
 
+    // Getting the author's address
     const originWallet =
       author.verified_addresses &&
       author.verified_addresses.eth_addresses &&
@@ -76,110 +76,40 @@ export const nominationsHandler = async (req: Request, res: Response) => {
         ? author.verified_addresses?.eth_addresses[0]
         : author.custody_address;
 
-    const brianbotFid = env.BRIANBOT_FARCASTER_FID;
+    try {
+      // Ask brian to generate a data payload starting from the prompt
+      const brianResponse = await brian.transact({
+        prompt,
+        address: originWallet,
+      });
+      console.log(brianResponse);
 
-    const notBotProfiles = mentionedProfiles.filter(
-      (profile: { fid: number }) => profile.fid !== brianbotFid
-    );
-
-    if (notBotProfiles && notBotProfiles.length > 0) {
-      // check if the user has mentioned a profile to nominate that is included in the match
-      const patternWords = firstMatch.split(" ");
-      const mentionedProfileUsernameInsidePattern = patternWords.find(
-        (word) => word.startsWith("@") && word !== "@brianbot"
+      // Generate the frameData object
+      const frameData: TransactionsDataType = await generateFrameDataPayload(
+        brianResponse,
+        originWallet
       );
 
-      if (mentionedProfileUsernameInsidePattern) {
-        // take mentioned profile from the mentionedProfiles array if the username matchers the mentionedProfileUsernameInsidePattern (without the "@"") or the username contains the mentionedProfileUsernameInsidePattern but ends with special characters like "." or "_" that are not included in the mentionedProfileUsernameInsidePattern
-        const mentionedProfile = notBotProfiles.find(
-          (profile: any) =>
-            profile.username ===
-              mentionedProfileUsernameInsidePattern.slice(1) ||
-            (profile.username.includes(
-              mentionedProfileUsernameInsidePattern.slice(1)
-            ) &&
-              (profile.username.endsWith(".") ||
-                profile.username.endsWith("_") ||
-                profile.username.endsWith("-") ||
-                profile.username.endsWith("!") ||
-                profile.username.endsWith("?") ||
-                profile.username.endsWith("#") ||
-                profile.username.endsWith("$")))
-        );
-        logger.log(
-          `mentioned profile to nominate - ${mentionedProfile.username}`
-        );
-        const walletToNominate =
-          mentionedProfile.verified_addresses.eth_addresses[0] ??
-          mentionedProfile.custody_address;
+      // Get the uuid that will be used to identify the operation
+      // and set the data in redis
+      const operationId = uuidv4();
+      logger.log(`writing operationId: ${operationId} to redis.`);
+      await redisClient.set(operationId, JSON.stringify(frameData));
 
-        if (originWallet && walletToNominate) {
-          //   const nominationResult = await createNomination(
-          //     originWallet,
-          //     walletToNominate,
-          //     hash
-          //   );
-          //   if (nominationResult.ok === false) {
-          //     if (nominationResult.status === 400) {
-          //       replyWithError(hash, nominationResult.error);
-          //     } else {
-          //       replyWithError(hash);
-          //     }
-          //     return res.status(200).send({ status: "nok" });
-          //   }
-          //   replyWithSuccess(hash, author.username, mentionedProfile.username);
-          //   return res.status(200).send({ status: "ok" });
-          replyWithSuccess(hash, author.username, mentionedProfile.username);
-          return res.status(200).send({ status: "ok" });
-        }
-        logger.error(`no valid profiles mentioned.`);
-        replyWithError(hash);
-        return res.status(200).send({ status: "nok" });
-      }
+      replyWithSuccess(hash, instructions, [
+        {
+          url: `${process.env.BRIANBOT_FRAME_HANDLER_URL}/frames/brian-tx?id=${operationId}`,
+        },
+      ]);
+    } catch (e) {
+      console.log("Error calling brian endpoint: ", e);
+      replyWithError(
+        hash,
+        "There was an issue with your prompt. Please try again."
+      );
     }
 
-    if (parentHash) {
-      // check the parent cast and get its caster as the nominated user
-      const parentCast = await getCastFromHash(parentHash);
-
-      if (!parentCast) {
-        logger.error(`parent cast [${parentHash}] not found.`);
-        replyWithError(hash);
-        return res.status(200).send({ status: "nok" });
-      }
-
-      const walletToNominate =
-        parentCast.cast.author.verified_addresses?.eth_addresses[0];
-
-      if (walletToNominate && originWallet) {
-        // const nominationResult = await createNomination(
-        //   originWallet,
-        //   walletToNominate,
-        //   hash
-        // );
-        // if (nominationResult.ok === false) {
-        //   if (nominationResult.status === 400) {
-        //     replyWithError(hash, nominationResult.error);
-        //   } else {
-        //     replyWithError(hash);
-        //   }
-        //   return res.status(200).send({ status: "nok" });
-        // }
-        replyWithSuccess(
-          hash,
-          author.username,
-          parentCast.cast.author.username ?? ""
-        );
-        return res.status(200).send({ status: "ok" });
-      }
-
-      logger.error(`no valid profiles mentioned.`);
-      replyWithError(hash);
-      return res.status(200).send({ status: "nok" });
-    }
-
-    replyWithError(hash);
-    return res.status(200).send({ status: "nok" });
+    return res.status(200).send({ status: "ok" });
   } catch (error) {
     if (error instanceof HTTPError && error.name === "HTTPError") {
       const errorJson = await error.response.json();
