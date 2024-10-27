@@ -1,10 +1,6 @@
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { env } from "../env.js";
-import {
-  CastParamType,
-  EmbeddedCast,
-  User,
-} from "@neynar/nodejs-sdk/build/neynar-api/v2/index.js";
+import { CastParamType, EmbeddedCast, User } from "@neynar/nodejs-sdk/build/neynar-api/v2/index.js";
 import ky from "ky";
 import { v4 as uuidv4 } from "uuid";
 import { CastSender } from "../schemas.js";
@@ -14,8 +10,7 @@ const SIGNER_UUID = env.FARCASTER_SIGNER_UUID;
 const client = new NeynarAPIClient(env.NEYNAR_API_KEY as string);
 
 const webhookName = env.BRIANBOT_WEBHOOK_NAME;
-const webhookUrl =
-  env.BRIANBOT_WEBHOOK_TARGET_BASE_URL + "/webhooks/nominations";
+const webhookUrl = env.BRIANBOT_WEBHOOK_TARGET_BASE_URL + "/webhooks/nominations";
 const brianbotFid = env.BRIANBOT_FARCASTER_FID as number;
 
 const logger = new Logger("farcaster");
@@ -23,22 +18,17 @@ const logger = new Logger("farcaster");
 export const setupWebhook = async () => {
   const createdWebhooks = await client.fetchWebhooks();
   const webhook = createdWebhooks.webhooks.find(
-    (webhook) =>
-      webhook.title === webhookName && webhook.target_url === webhookUrl
+    (webhook) => webhook.title === webhookName && webhook.target_url === webhookUrl
   );
   if (webhook) {
-    logger.log(
-      `webhook already exists, using webhook with id ${webhook.webhook_id} and title ${webhook.title}`
-    );
+    logger.log(`webhook already exists, using webhook with id ${webhook.webhook_id} and title ${webhook.title}`);
     return {
       success: true,
       message: "webhook already exists",
       webhook,
     };
   }
-  throw new Error(
-    "webhook does not exist - please create a new webhook before continuing."
-  );
+  throw new Error("webhook does not exist - please create a new webhook before continuing.");
 
   logger.log("webhook does not exist - creating new webhook");
   return await client.publishWebhook(webhookName, webhookUrl, {
@@ -70,17 +60,11 @@ export const publishCast = async (
  * @param {string} text the text of the cast to send
  * @param {number} recipient farcaster id of the recipient
  */
-export const sendDirectCast = async (
-  recipient: number,
-  text: string,
-  sender: CastSender = CastSender.BRIANBOT
-) => {
+export const sendDirectCast = async (recipient: number, text: string, sender: CastSender = CastSender.BRIANBOT) => {
   let apiKey: string | undefined;
   if (sender === CastSender.BRIANBOT) {
     if (!env.BRIANBOT_WARPCAST_API_KEY) {
-      logger.error(
-        "No BRIANBOT_WARPCAST_API_KEY found, skipping direct cast send."
-      );
+      logger.error("No BRIANBOT_WARPCAST_API_KEY found, skipping direct cast send.");
       throw new Error("No BRIANBOT_WARPCAST_API_KEY found.");
     }
     logger.log("sending direct cast as brianbot");
@@ -133,9 +117,7 @@ export const getAddressFromUsername = async (username: string) => {
  * @param {string[]} addresses the ethereum addresses to lookup
  * @returns list of farcaster users
  */
-export const getFarcasterUsersByAddresses = async (
-  addresses: string[]
-): Promise<{ [key: string]: User[] | undefined }> => {
+export const getFarcasterUsersByAddresses = async (addresses: string[]): Promise<{ [key: string]: User[] | undefined }> => {
   try {
     // return await ky
     // .get(
@@ -215,8 +197,5 @@ export const isCorrectUser = (user: User, inputAddress: string) => {
  * @returns farcaster cast with the given hash, or undefined
  */
 export const getCastFromHash = async (castHash: string) => {
-  return await client.lookUpCastByHashOrWarpcastUrl(
-    castHash,
-    CastParamType.Hash
-  );
+  return await client.lookUpCastByHashOrWarpcastUrl(castHash, CastParamType.Hash);
 };
