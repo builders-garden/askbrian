@@ -1,7 +1,7 @@
 import z from "zod";
 
 export enum CastSender {
-  BRIANBOT = "brianbot",
+  ASKBRIAN = "askbrian",
 }
 
 export enum ChannelService {

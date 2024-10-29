@@ -19,7 +19,7 @@ app.use("/", utilsRouter);
 app.use("/webhooks", webhooksRouter);
 
 app.listen(env.PORT, async () => {
-  console.log(`⚡️ brianbot running on port ${env.PORT}`);
+  console.log(`⚡️ askbrian running on port ${env.PORT}`);
   await setupWebhook();
   console.log(`🎣 neynar webhook setup complete.`);
 });

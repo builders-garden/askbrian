@@ -8,15 +8,16 @@ import { v4 as uuidv4 } from "uuid";
 import { TransactionsDataType } from "../../utils/types.js";
 import { generateFrameDataPayload } from "../../utils/brian.js";
 
+const logger = new Logger("nominationsHandler");
+
 const options = {
   apiKey: process.env.BRIAN_API_KEY!,
 };
-
 const brian = new BrianSDK(options);
 
-const logger = new Logger("nominationsHandler");
+const farcasterFrameHandlerUrl = process.env.ASKBRIAN_FRAME_HANDLER_URL!;
 
-const regexPattern = /^@brianbot/g;
+const regexPattern = /@askbrian/g;
 
 const instructions = `This frame contains all your requested transactions.\n
 Click on the button to execute the first transaction, wait around 30 seconds for it to go through and then click on the "refresh" button, the second one.\n
@@ -46,7 +47,7 @@ const replyWithSuccess = async (
 
 export const nominationsHandler = async (req: Request, res: Response) => {
   try {
-    logger.log(`new cast with @brianbot mention received.`);
+    logger.log(`new cast with @askbrian mention received.`);
     const { data } = req.body;
 
     if (!data) {
@@ -60,11 +61,16 @@ export const nominationsHandler = async (req: Request, res: Response) => {
     console.log("hash: ", hash);
 
     if (text.match(regexPattern) === null) {
-      logger.error(`No brianbot command received. received text - ${text}`);
+      logger.error(
+        `No @askbrian mention found in the cast. received text - ${text}`
+      );
       return res.status(200).send({ status: "nok" });
     }
 
-    const prompt = text.replace("@brianbot", "").trim();
+    const prompt =
+      text.indexOf("@askbrian") !== -1
+        ? text.slice(text.indexOf("@askbrian") + 10).trim()
+        : "";
 
     console.log("The prompt is: ", prompt);
 
@@ -98,7 +104,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
 
       replyWithSuccess(hash, instructions, [
         {
-          url: `${process.env.BRIANBOT_FRAME_HANDLER_URL}/frames/brian-tx?id=${operationId}`,
+          url: `${farcasterFrameHandlerUrl}/frames/brian-tx?id=${operationId}`,
         },
       ]);
     } catch (e) {

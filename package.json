@@ -1,5 +1,5 @@
 {
-  "name": "brianbot",
+  "name": "askbrian",
   "version": "1.0.0",
   "description": "",
   "scripts": {
@@ -15,8 +15,6 @@
     "@brian-ai/sdk": "^0.3.0",
     "@farcaster/hub-nodejs": "^0.12.6",
     "@neynar/nodejs-sdk": "1.63.0",
-    "@xmtp/grpc-api-client": "^0.2.7",
-    "@xmtp/xmtp-js": "^11.6.2",
     "axios": "^1.7.2",
     "bullmq": "^5.7.9",
     "croner": "^8.0.2",
