@@ -141,7 +141,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
       );
       saveBrianRequest({
         status: "nok",
-        errorMessage: (e as Error).message || "Error calling brian endpoint.",
+        errorMessage: "Error calling brian endpoint: " + (e as Error).message,
         cast: data,
         brianInput: {
           prompt,
@@ -161,7 +161,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
       );
       saveBrianRequest({
         status: "nok",
-        errorMessage: errorJson.error || "Error sending prompt to brian.",
+        errorMessage: "Error sending prompt to brian: " + errorJson.error,
       });
     }
     if (error instanceof Error) {
@@ -172,7 +172,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
       );
       saveBrianRequest({
         status: "nok",
-        errorMessage: error.message || "Error processing nomination.",
+        errorMessage: "Error processing nomination: " + error.message,
       });
     }
     return res.status(200).send({ status: "nok" });
