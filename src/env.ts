@@ -28,6 +28,9 @@ const envSchema = z.object({
   NEYNAR_WEBHOOK_NAME: z.string().trim().min(1),
   NEYNAR_WEBHOOK_TARGET_URL: z.string().url().trim().min(1),
   NEYNAR_WEBHOOK_SECRET: z.string().trim().min(1),
+  // turso
+  TURSO_DATABASE_URL: z.string().url().trim().min(1),
+  TURSO_AUTH_TOKEN: z.string().trim().min(1),
 });
 
 const { data, success, error } = envSchema.safeParse(process.env);

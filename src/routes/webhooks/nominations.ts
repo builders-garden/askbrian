@@ -7,6 +7,7 @@ import { redisClient } from "../../utils/redis.js";
 import { v4 as uuidv4 } from "uuid";
 import { TransactionsDataType } from "../../utils/types.js";
 import { generateFrameDataPayload } from "../../utils/brian.js";
+import { saveBrianRequest } from "../../utils/turso.js";
 
 const logger = new Logger("nominationsHandler");
 
@@ -52,6 +53,12 @@ export const nominationsHandler = async (req: Request, res: Response) => {
 
     if (!data) {
       logger.error(`no data received.`);
+
+      saveBrianRequest({
+        status: "nok",
+        errorMessage: "No data received.",
+      });
+
       return res.status(200).send({ status: "nok" });
     }
 
@@ -64,6 +71,13 @@ export const nominationsHandler = async (req: Request, res: Response) => {
       logger.error(
         `No @askbrian mention found in the cast. received text - ${text}`
       );
+
+      saveBrianRequest({
+        status: "nok",
+        errorMessage: "No @askbrian mention found in the cast.",
+        cast: data,
+      });
+
       return res.status(200).send({ status: "nok" });
     }
 
@@ -107,12 +121,33 @@ export const nominationsHandler = async (req: Request, res: Response) => {
           url: `${farcasterFrameHandlerUrl}/frames/brian-tx?id=${operationId}`,
         },
       ]);
+
+      saveBrianRequest({
+        status: "ok",
+        cast: data,
+        brianInput: {
+          prompt,
+          originWallet,
+        },
+        brianResponse: brianResponse,
+        frameData: frameData,
+        redisOperationId: operationId,
+      });
     } catch (e) {
       console.log("Error calling brian endpoint: ", e);
       replyWithError(
         hash,
         "There was an issue with your prompt. Please try again."
       );
+      saveBrianRequest({
+        status: "nok",
+        errorMessage: (e as Error).message || "Error calling brian endpoint.",
+        cast: data,
+        brianInput: {
+          prompt,
+          originWallet,
+        },
+      });
     }
 
     return res.status(200).send({ status: "ok" });
@@ -124,6 +159,10 @@ export const nominationsHandler = async (req: Request, res: Response) => {
           errorJson.error
         }.`
       );
+      saveBrianRequest({
+        status: "nok",
+        errorMessage: errorJson.error || "Error sending prompt to brian.",
+      });
     }
     if (error instanceof Error) {
       console.error(
@@ -131,6 +170,10 @@ export const nominationsHandler = async (req: Request, res: Response) => {
           error.message
         }.`
       );
+      saveBrianRequest({
+        status: "nok",
+        errorMessage: error.message || "Error processing nomination.",
+      });
     }
     return res.status(200).send({ status: "nok" });
   }
