@@ -1,8 +1,19 @@
 import { sql } from "drizzle-orm";
 import { text, sqliteTable, integer } from "drizzle-orm/sqlite-core";
 
-export const fooTable = sqliteTable("foo", {
-  bar: text("bar").notNull().default("Hey!"),
+export const askbrianFrameResultsTable = sqliteTable("askbrian_frame_results", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  frameResultStatus: text("frame_result_status"),
+  frameResultErrorMessage: text("frame_result_error_message"),
+  frameResultAction: text("frame_result_action"),
+  frameResultTxStatus: text("frame_result_tx_status"),
+  frameResultChainId: integer("frame_result_chain_id"),
+  frameResultStep: integer("frame_result_step"),
+  frameResultRequest: integer("frame_result_request"),
+  frameResultRequestDescription: text("frame_result_request_description"),
+  redisOperationId: text("redis_operation_id").unique(),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const askbrianRequestsTable = sqliteTable("askbrian_requests", {
@@ -19,4 +30,5 @@ export const askbrianRequestsTable = sqliteTable("askbrian_requests", {
   frameData: text("frame_data"),
   redisOperationId: text("redis_operation_id"),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
 });
