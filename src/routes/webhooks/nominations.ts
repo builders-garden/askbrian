@@ -101,8 +101,9 @@ export const nominationsHandler = async (req: Request, res: Response) => {
       const brianResponse = await brian.transact({
         prompt,
         address: originWallet,
+        chainId: "8453",
       });
-      console.log(brianResponse);
+      console.log("brianResponse: ", brianResponse);
 
       // Generate the frameData object
       const frameData: TransactionsDataType = await generateFrameDataPayload(
