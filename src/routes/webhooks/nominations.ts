@@ -24,6 +24,10 @@ const instructions = `This frame contains all your requested transactions.\n
 Click on the button to execute the first transaction, wait around 30 seconds for it to go through and then click on the "refresh" button, the second one.\n
 Keep going like this until you have executed all the transactions.\n`;
 
+function hasCauseProperty(error: any): error is { cause: { error?: string } } {
+  return error && typeof error === "object" && "cause" in error;
+}
+
 const replyWithError = async (replyTo: string, text?: string) => {
   addToRepliesQueue({
     text: text || "There was an issue with your prompt. Please try again.",
@@ -142,13 +146,12 @@ export const nominationsHandler = async (req: Request, res: Response) => {
       let errorMessage =
         "There was an issue with your prompt. Please try again.";
       if (e instanceof Error) {
-        try {
-          const errorMessageJson = JSON.parse(e.message);
-          if (errorMessageJson.cause && errorMessageJson.cause.error) {
-            errorMessage = errorMessageJson.cause.error;
+        errorMessage = e.message;
+        if (hasCauseProperty(e) && typeof e.cause === "object") {
+          const cause = e.cause as { error?: string };
+          if (cause.error) {
+            errorMessage = cause.error;
           }
-        } catch (parseError) {
-          console.error("Error parsing error message: ", parseError);
         }
       }
       //console.error("Error calling brian endpoint: ", e);
