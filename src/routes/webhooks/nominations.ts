@@ -146,7 +146,6 @@ export const nominationsHandler = async (req: Request, res: Response) => {
       let errorMessage =
         "There was an issue with your prompt. Please try again.";
       if (e instanceof Error) {
-        errorMessage = e.message;
         if (hasCauseProperty(e) && typeof e.cause === "object") {
           const cause = e.cause as { error?: string };
           if (cause.error) {
