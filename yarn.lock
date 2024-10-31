@@ -14,10 +14,10 @@
   dependencies:
     regenerator-runtime "^0.14.0"
 
-"@brian-ai/sdk@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@brian-ai/sdk/-/sdk-0.3.0.tgz#e264c6d2a36474490aeb3ec4cbbbad36a6bd4b43"
-  integrity sha512-gbt9bgUeK1cNxeGn5WPuUU9slOE1L8BpgoQBxYhRWDM72EOQIDBt009+Uq+blPp2IjI671cwi9t7EEZtm/wVOQ==
+"@brian-ai/sdk@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@brian-ai/sdk/-/sdk-0.3.1.tgz#e8fbf22a687334770377c4d05d89cf6ba166216c"
+  integrity sha512-1HkjUsFpE8vyaujBrq/llmcaJ6+4MUhVkN23eEnw+tgqx6Ek8T3mrttCbI62QMP0cY/bvWCqJwxMUZyBN9zn6w==
   dependencies:
     dotenv "^16.4.5"
     ky "^1.5.0"
