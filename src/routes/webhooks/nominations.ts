@@ -103,25 +103,28 @@ export const nominationsHandler = async (req: Request, res: Response) => {
         address: originWallet,
         chainId: "8453",
       });
-      console.log("brianResponse: ", brianResponse);
+      logger.log(`brianResponse ${JSON.stringify(brianResponse)}`);
 
       // Generate the frameData object
       const frameData: TransactionsDataType = await generateFrameDataPayload(
         brianResponse,
         originWallet
       );
+      logger.log(`frameData generated ${JSON.stringify(frameData)}`);
 
       // Get the uuid that will be used to identify the operation
       // and set the data in redis
       const operationId = uuidv4();
       logger.log(`writing operationId: ${operationId} to redis.`);
       await redisClient.set(operationId, JSON.stringify(frameData));
+      logger.log(`replying with success to ${hash}`);
 
       replyWithSuccess(hash, instructions, [
         {
           url: `${farcasterFrameHandlerUrl}/frames/brian-tx?id=${operationId}`,
         },
       ]);
+      logger.log(`replied with success to ${hash}`);
 
       saveBrianRequest({
         status: "ok",
@@ -134,8 +137,9 @@ export const nominationsHandler = async (req: Request, res: Response) => {
         frameData: frameData,
         redisOperationId: operationId,
       });
+      logger.log(`saved brian request to turso.`);
     } catch (e) {
-      console.log("Error calling brian endpoint: ", e);
+      console.error("Error calling brian endpoint: ", e);
       replyWithError(
         hash,
         "There was an issue with your prompt. Please try again."
