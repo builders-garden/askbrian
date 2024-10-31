@@ -17,7 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@brian-ai/sdk": "^0.3.0",
+    "@brian-ai/sdk": "^0.3.1",
     "@farcaster/hub-nodejs": "^0.12.6",
     "@libsql/client": "^0.14.0",
     "@neynar/nodejs-sdk": "1.63.0",
