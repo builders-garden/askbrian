@@ -154,7 +154,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
           }
         }
       }
-      //console.error("Error calling brian endpoint: ", e);
+      console.error("Error calling brian endpoint: ", e);
       replyWithError(hash, errorMessage);
       saveBrianRequest({
         status: "nok",
