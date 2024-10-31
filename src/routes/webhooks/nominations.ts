@@ -156,10 +156,6 @@ export const nominationsHandler = async (req: Request, res: Response) => {
       }
       //console.error("Error calling brian endpoint: ", e);
       replyWithError(hash, errorMessage);
-      replyWithError(
-        hash,
-        "There was an issue with your prompt. Please try again."
-      );
       saveBrianRequest({
         status: "nok",
         errorMessage: "Error calling brian endpoint: " + (e as Error).message,
