@@ -139,7 +139,20 @@ export const nominationsHandler = async (req: Request, res: Response) => {
       });
       logger.log(`saved brian request to turso.`);
     } catch (e) {
-      console.error("Error calling brian endpoint: ", e);
+      let errorMessage =
+        "There was an issue with your prompt. Please try again.";
+      if (e instanceof Error) {
+        try {
+          const errorMessageJson = JSON.parse(e.message);
+          if (errorMessageJson.cause && errorMessageJson.cause.error) {
+            errorMessage = errorMessageJson.cause.error;
+          }
+        } catch (parseError) {
+          console.error("Error parsing error message: ", parseError);
+        }
+      }
+      //console.error("Error calling brian endpoint: ", e);
+      replyWithError(hash, errorMessage);
       replyWithError(
         hash,
         "There was an issue with your prompt. Please try again."
