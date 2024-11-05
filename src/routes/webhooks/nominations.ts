@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import { TransactionsDataType } from "../../utils/types.js";
 import { generateFrameDataPayload } from "../../utils/brian.js";
 import { saveBrianRequest } from "../../utils/turso.js";
+import { getOpenaiMessage } from "../../utils/openai.js";
 
 const logger = new Logger("nominationsHandler");
 
@@ -19,10 +20,6 @@ const brian = new BrianSDK(options);
 const farcasterFrameHandlerUrl = process.env.ASKBRIAN_FRAME_HANDLER_URL!;
 
 const regexPattern = /@askbrian/g;
-
-const instructions = `This frame contains all your requested transactions.\n
-Click on the button to execute the first transaction, wait around 30 seconds for it to go through and then click on the "refresh" button, the second one.\n
-Keep going like this until you have executed all the transactions.\n`;
 
 function hasCauseProperty(error: any): error is { cause: { error?: string } } {
   return error && typeof error === "object" && "cause" in error;
@@ -123,7 +120,10 @@ export const nominationsHandler = async (req: Request, res: Response) => {
       await redisClient.set(operationId, JSON.stringify(frameData));
       logger.log(`replying with success to ${hash}`);
 
-      replyWithSuccess(hash, instructions, [
+      // Ask openai to generate a message for the frame
+      const openaiMessage = await getOpenaiMessage(frameData, text);
+
+      replyWithSuccess(hash, openaiMessage, [
         {
           url: `${farcasterFrameHandlerUrl}/frames/brian-tx?id=${operationId}`,
         },
@@ -139,6 +139,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
         },
         brianResponse: brianResponse,
         frameData: frameData,
+        openaiMessage: openaiMessage,
         redisOperationId: operationId,
       });
       logger.log(`saved brian request to turso.`);

@@ -31,6 +31,9 @@ const envSchema = z.object({
   // turso
   TURSO_DATABASE_URL: z.string().url().trim().min(1),
   TURSO_AUTH_TOKEN: z.string().trim().min(1),
+  // openai
+  OPENAI_API_BASE_URL: z.string().url().trim().min(1),
+  OPENAI_API_KEY: z.string().trim().min(1),
 });
 
 const { data, success, error } = envSchema.safeParse(process.env);

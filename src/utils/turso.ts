@@ -32,6 +32,7 @@ type BrianRequest = {
   };
   brianResponse?: TransactionResult[];
   frameData?: TransactionsDataType;
+  openaiMessage?: string;
   redisOperationId?: string;
 };
 
@@ -50,6 +51,7 @@ export const saveBrianRequest = async (brianRequest: BrianRequest) => {
     brianInputPrompt: brianRequest.brianInput?.prompt || null,
     brianResponse: JSON.stringify(brianRequest.brianResponse || null),
     frameData: JSON.stringify(brianRequest.frameData || null),
+    openaiMessage: brianRequest.openaiMessage || null,
     redisOperationId: brianRequest.redisOperationId || null,
   });
 };

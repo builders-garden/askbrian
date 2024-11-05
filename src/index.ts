@@ -17,6 +17,8 @@ app.use(express.json({ limit: "10mb" }));
 app.use(apiLimiter);
 app.use("/", utilsRouter);
 app.use("/webhooks", webhooksRouter);
+// TODO: remove this before deploying
+// app.use("/tests", testsRouter);
 
 app.listen(env.PORT, async () => {
   console.log(`⚡️ askbrian running on port ${env.PORT}`);
