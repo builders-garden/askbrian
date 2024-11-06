@@ -63,6 +63,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
 
     const { text, author, hash }: { text: string; author: any; hash: string } =
       data;
+    logger.info(`received cast ${hash} with text ${text}`);
 
     if (text.match(regexPattern) === null) {
       logger.error(

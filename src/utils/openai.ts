@@ -32,9 +32,7 @@ export const getOpenaiMessage = async (
   const openaiPrompt = frameData.requests
     .map((r) => `${r.description}\n`)
     .join("\n");
-  logger.log(`openaiPrompt from brian response: ${openaiPrompt}`);
 
-  // Ask openai to generate a prompt for the frame
   try {
     const openaiResponse = await openaiClient.chat.completions.create({
       model: "grok-beta", // bye "gpt-4o-mini",
@@ -54,10 +52,9 @@ export const getOpenaiMessage = async (
       ],
       // max_tokens: 1000 // comment for grok-beta
     });
-    logger.log(`openaiResponse: ${JSON.stringify(openaiResponse.choices)}`);
 
     const openaiMessage = openaiResponse.choices[0].message.content;
-    logger.log(`OpenAI Message: ${openaiMessage}`);
+    logger.log(`OpenAI wrote this message for the frame: ${openaiMessage}`);
 
     return openaiMessage || fallbackMessage;
   } catch (error) {
