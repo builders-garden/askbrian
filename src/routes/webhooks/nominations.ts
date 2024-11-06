@@ -54,31 +54,25 @@ export const nominationsHandler = async (req: Request, res: Response) => {
 
     if (!data) {
       logger.error(`no data received.`);
-
       saveBrianRequest({
         status: "nok",
         errorMessage: "No data received.",
       });
-
       return res.status(200).send({ status: "nok" });
     }
 
     const { text, author, hash }: { text: string; author: any; hash: string } =
       data;
 
-    console.log("hash: ", hash);
-
     if (text.match(regexPattern) === null) {
       logger.error(
-        `No @askbrian mention found in the cast. received text - ${text}`
+        `No @askbrian mention found in the cast ${hash}. received text - ${text}`
       );
-
       saveBrianRequest({
         status: "nok",
-        errorMessage: "No @askbrian mention found in the cast.",
+        errorMessage: `No @askbrian mention found in the cast ${hash}.`,
         cast: data,
       });
-
       return res.status(200).send({ status: "nok" });
     }
 
@@ -86,8 +80,6 @@ export const nominationsHandler = async (req: Request, res: Response) => {
       text.indexOf("@askbrian") !== -1
         ? text.slice(text.indexOf("@askbrian") + 10).trim()
         : "";
-
-    console.log("The prompt is: ", prompt);
 
     // Getting the author's address
     const originWallet =
@@ -104,31 +96,23 @@ export const nominationsHandler = async (req: Request, res: Response) => {
         address: originWallet,
         chainId: "8453",
       });
-      logger.log(`brianResponse ${JSON.stringify(brianResponse)}`);
 
       // Generate the frameData object
       const frameData: TransactionsDataType = await generateFrameDataPayload(
         brianResponse,
         originWallet
       );
-      logger.log(`frameData generated ${JSON.stringify(frameData)}`);
 
-      // Get the uuid that will be used to identify the operation
-      // and set the data in redis
       const operationId = uuidv4();
-      logger.log(`writing operationId: ${operationId} to redis.`);
       await redisClient.set(operationId, JSON.stringify(frameData));
-      logger.log(`replying with success to ${hash}`);
 
       // Ask openai to generate a message for the frame
       const openaiMessage = await getOpenaiMessage(frameData, text);
-
       replyWithSuccess(hash, openaiMessage, [
         {
           url: `${farcasterFrameHandlerUrl}/frames/brian-tx?id=${operationId}`,
         },
       ]);
-      logger.log(`replied with success to ${hash}`);
 
       saveBrianRequest({
         status: "ok",
@@ -142,7 +126,9 @@ export const nominationsHandler = async (req: Request, res: Response) => {
         openaiMessage: openaiMessage,
         redisOperationId: operationId,
       });
-      logger.log(`saved brian request to turso.`);
+      logger.log(
+        `replied to ${hash} with ${openaiMessage} and saved request to db.`
+      );
     } catch (e) {
       let errorMessage =
         "There was an issue with your prompt. Please try again.";
@@ -154,7 +140,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
           }
         }
       }
-      console.error("Error calling brian endpoint: ", e);
+      logger.error(`Error calling brian endpoint: ${JSON.stringify(e)}`);
       replyWithError(hash, errorMessage);
       saveBrianRequest({
         status: "nok",
@@ -171,7 +157,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
   } catch (error) {
     if (error instanceof HTTPError && error.name === "HTTPError") {
       const errorJson = await error.response.json();
-      console.error(
+      logger.error(
         `[/webhooks/nominations] [${new Date().toISOString()}] - error sending prompt to brian: ${
           errorJson.error
         }.`
@@ -182,7 +168,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
       });
     }
     if (error instanceof Error) {
-      console.error(
+      logger.error(
         `[/webhooks/nominations] [${new Date().toISOString()}] - error processing nomination: ${
           error.message
         }.`
