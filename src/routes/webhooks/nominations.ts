@@ -58,7 +58,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
         status: "nok",
         errorMessage: "No data received.",
       });
-      return res.status(200).send({ status: "nok" });
+      return;
     }
 
     const { text, author, hash }: { text: string; author: any; hash: string } =
@@ -76,7 +76,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
         errorMessage: `No @askbrian mention found in the cast ${hash}.`,
         cast: data,
       });
-      return res.status(400).send({ status: "nok" });
+      return;
     }
 
     const prompt =
@@ -181,6 +181,6 @@ export const nominationsHandler = async (req: Request, res: Response) => {
         errorMessage: "Error processing nomination: " + error.message,
       });
     }
-    return res.status(400).send({ status: "nok" });
+    return;
   }
 };
