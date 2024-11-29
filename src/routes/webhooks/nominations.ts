@@ -63,6 +63,8 @@ export const nominationsHandler = async (req: Request, res: Response) => {
 
     const { text, author, hash }: { text: string; author: any; hash: string } =
       data;
+    res.status(200).send({ status: "ok" });
+
     logger.info(`received cast ${hash} with text ${text}`);
 
     if (text.match(regexPattern) === null) {
@@ -74,7 +76,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
         errorMessage: `No @askbrian mention found in the cast ${hash}.`,
         cast: data,
       });
-      return res.status(200).send({ status: "nok" });
+      return res.status(400).send({ status: "nok" });
     }
 
     const prompt =
@@ -154,7 +156,7 @@ export const nominationsHandler = async (req: Request, res: Response) => {
       });
     }
 
-    return res.status(200).send({ status: "ok" });
+    return;
   } catch (error) {
     if (error instanceof HTTPError && error.name === "HTTPError") {
       const errorJson = await error.response.json();
@@ -179,6 +181,6 @@ export const nominationsHandler = async (req: Request, res: Response) => {
         errorMessage: "Error processing nomination: " + error.message,
       });
     }
-    return res.status(200).send({ status: "nok" });
+    return res.status(400).send({ status: "nok" });
   }
 };
