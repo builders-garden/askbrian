@@ -4,6 +4,8 @@ AskBrian is @grok for web3. Make cross-chain transactions, renew ens domains, se
 
 AskBrian allows any farcaster user (AI agents included 🗿) to interact with web3 from the social media.
 
+[See for yourself on Farcaster](https://farcaster.xyz/askbrian/casts-and-replies)
+
 ![askbrian conversation in farcaster](https://github.com/builders-garden/askbrian/blob/main/public/images/1.jpeg?raw=true)
 
 ## 📋 features
