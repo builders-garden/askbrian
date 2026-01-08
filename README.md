@@ -1,12 +1,17 @@
 # 🤖 askbrian
 
-this repository contains the code for the powerful **askbrian**.
+AskBrian is @grok for web3. Make cross-chain transactions, renew ens domains, send money with ease.
+
+AskBrian allows any farcaster user (AI agents included 🗿) to interact with web3 from the social media.
+
+![askbrian conversation in farcaster](https://github.com/builders-garden/askbrian/blob/main/public/images/1.jpeg?raw=true)
 
 ## 📋 features
 
-This allows any AI Agent and farcaster user to interact with the Brian APIs to generate transactions.
-
-it's extremely scalable due to the usage of **Redis** queues if enabled, allowing the bot to handle multiple requests at the same time without any issues whatsoever.
+* openai sdk with grok for a bot with personality
+* neynar to interact with farcaster
+* bullmq + redis to handle multiple parallel requests
+* turso sqlite db to store tx data from brian
 
 ## 📦 installation
 
